@@ -69,8 +69,8 @@ Options:
   --max-shops <number>               Maximum shops per city (default: 0 = all shops)
   --output-csv <path>                Output CSV file (default: hardware_shops.csv)
   --output-json <path>               Output JSON file (default: hardware_shops_nested.json)
-  --sheet-id <spreadsheet_id>        Google Sheet ID
-  --service-account-json <path>      Service account JSON file path
+  --sheet-id <spreadsheet_id>        Google Sheet ID (required)
+  --service-account-json <path>      Service account JSON file path (required)
   --worksheet-name <name>            Worksheet name (default: Hardware_Shops)
   -h, --help                         Show help
 `);
@@ -178,24 +178,36 @@ function escapeCsvValue(value) {
   return stringValue;
 }
 
-function saveToCsv(nestedData, outputPath) {
-  const header = ['city', 'shop_name', 'address', 'phone_number', 'rating', 'website'];
-  const lines = [header.join(',')];
+
+function nestedToRows(nestedData) {
+  const rows = [];
 
   for (const cityBlock of nestedData) {
     const cityName = cityBlock[0];
     const cityShops = cityBlock[1];
 
     for (const shop of cityShops) {
-      lines.push([
+      rows.push([
         cityName,
-        shop.shop_name,
-        shop.address,
-        shop.phone_number,
-        shop.rating,
-        shop.website,
-      ].map(escapeCsvValue).join(','));
+        shop.shop_name || '',
+        shop.address || '',
+        shop.phone_number || '',
+        shop.rating || '',
+        shop.website || '',
+      ]);
     }
+  }
+
+  return rows;
+}
+
+function saveToCsv(nestedData, outputPath) {
+  const header = ['city', 'shop_name', 'address', 'phone_number', 'rating', 'website'];
+  const rows = nestedToRows(nestedData);
+  const lines = [header.join(',')];
+
+  for (const row of rows) {
+    lines.push(row.map(escapeCsvValue).join(','));
   }
 
   fs.writeFileSync(outputPath, `${lines.join('\n')}\n`, 'utf-8');
@@ -231,23 +243,7 @@ async function pushToGoogleSheets(nestedData, serviceAccountJson, spreadsheetId,
     });
   }
 
-  const rows = [['city', 'shop_name', 'address', 'phone_number', 'rating', 'website']];
-
-  for (const cityBlock of nestedData) {
-    const cityName = cityBlock[0];
-    const cityShops = cityBlock[1];
-
-    for (const shop of cityShops) {
-      rows.push([
-        cityName,
-        shop.shop_name || '',
-        shop.address || '',
-        shop.phone_number || '',
-        shop.rating || '',
-        shop.website || '',
-      ]);
-    }
-  }
+  const rows = [['city', 'shop_name', 'address', 'phone_number', 'rating', 'website'], ...nestedToRows(nestedData)];
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
@@ -263,6 +259,10 @@ async function main() {
   if (args.help) {
     printHelp();
     return;
+  }
+
+  if (!args.sheetId || !args.serviceAccountJson) {
+    throw new Error('Both --sheet-id and --service-account-json are required so all data can be saved to Google Sheet and CSV.');
   }
 
   const nestedData = [];
@@ -282,17 +282,13 @@ async function main() {
   fs.writeFileSync(args.outputJson, JSON.stringify(nestedData, null, 2), 'utf-8');
   saveToCsv(nestedData, args.outputCsv);
 
-  if (args.sheetId && args.serviceAccountJson) {
-    await pushToGoogleSheets(
-      nestedData,
-      args.serviceAccountJson,
-      args.sheetId,
-      args.worksheetName,
-    );
-    console.log('Google Sheet updated successfully.');
-  } else {
-    console.log('Skipped Google Sheets push (sheet-id/service-account-json missing).');
-  }
+  await pushToGoogleSheets(
+    nestedData,
+    args.serviceAccountJson,
+    args.sheetId,
+    args.worksheetName,
+  );
+  console.log('Google Sheet updated successfully.');
 
   console.log(`Done. JSON: ${args.outputJson}, CSV: ${args.outputCsv}`);
 }

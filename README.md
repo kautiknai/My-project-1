@@ -7,10 +7,10 @@ Yeh project **JavaScript** + **Playwright** use karta hai aur Google Maps se har
 - rating
 - website
 
-Output:
-1. Nested array JSON
-2. CSV file
-3. Optional Google Sheet update
+Output (dono mandatory):
+1. CSV file
+2. Google Sheet update
+3. Nested array JSON backup
 
 ## Cities (default)
 - Vadodara
@@ -25,13 +25,20 @@ npx playwright install chromium
 ```
 
 ## Run (all shops for all 4 cities)
+> Note: `--sheet-id` aur `--service-account-json` required hai, tabhi run complete hoga.
+
 ```bash
-node scraper_google_maps.js
+node scraper_google_maps.js \
+  --sheet-id YOUR_SPREADSHEET_ID \
+  --service-account-json /path/to/service_account.json
 ```
 
 Agar limit chahiye tab:
 ```bash
-node scraper_google_maps.js --max-shops 40
+node scraper_google_maps.js \
+  --max-shops 40 \
+  --sheet-id YOUR_SPREADSHEET_ID \
+  --service-account-json /path/to/service_account.json
 ```
 
 ## Google Sheets me data bhejna
@@ -52,18 +59,7 @@ node scraper_google_maps.js \
 Script nested array format me data store karta hai:
 ```json
 [
-  [
-    "Vadodara",
-    [
-      {
-        "shop_name": "...",
-        "address": "...",
-        "phone_number": "...",
-        "rating": "...",
-        "website": "..."
-      }
-    ]
-  ],
+  ["Vadodara", [{ "shop_name": "...", "address": "...", "phone_number": "...", "rating": "...", "website": "..." }]],
   ["Ahmedabad", [ ... ]],
   ["Surat", [ ... ]],
   ["Rajkot", [ ... ]]
@@ -72,5 +68,6 @@ Script nested array format me data store karta hai:
 
 ## Notes
 - `--max-shops 0` ka matlab hai: available list me jitni shops load ho sake utni sab scrape karo.
+- Script har run me CSV aur Google Sheet dono me same rows bhejta hai.
 - Google Maps UI frequently badalti rehti hai, isliye selectors future me update karne pad sakte hain.
 - Data usage ke liye Google ke terms follow karein.
