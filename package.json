@@ -1,0 +1,15 @@
+{
+  "name": "google-maps-hardware-scraper",
+  "version": "1.0.0",
+  "description": "Google Maps hardware shops scraper with nested array output and Google Sheets sync",
+  "main": "scraper_google_maps.js",
+  "scripts": {
+    "start": "node scraper_google_maps.js",
+    "help": "node scraper_google_maps.js --help",
+    "check": "node --check scraper_google_maps.js"
+  },
+  "dependencies": {
+    "googleapis": "^153.0.0",
+    "playwright": "1.53.0"
+  }
+}
