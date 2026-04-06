@@ -12,7 +12,7 @@ function cleanText(value) {
 function parseArgs(argv) {
   const args = {
     cities: ['Vadodara', 'Ahmedabad', 'Surat', 'Rajkot'],
-    maxShops: 30,
+    maxShops: 0,
     outputCsv: 'hardware_shops.csv',
     outputJson: 'hardware_shops_nested.json',
     sheetId: '',
@@ -66,7 +66,7 @@ function printHelp() {
 
 Options:
   --cities <city1 city2 ...>         City names list
-  --max-shops <number>               Maximum shops per city (default: 30)
+  --max-shops <number>               Maximum shops per city (default: 0 = all shops)
   --output-csv <path>                Output CSV file (default: hardware_shops.csv)
   --output-json <path>               Output JSON file (default: hardware_shops_nested.json)
   --sheet-id <spreadsheet_id>        Google Sheet ID
@@ -135,13 +135,15 @@ async function collectCityShops(page, city, maxShops) {
 
   while (true) {
     const cardsCount = await page.locator('a.hfpxzc').count();
+    const endOfListText = page.locator('span:has-text("You\'ve reached the end of the list")').first();
+    const reachedListEnd = await endOfListText.count() > 0;
 
-    if (cardsCount >= maxShops) break;
+    if (maxShops > 0 && cardsCount >= maxShops) break;
 
     if (cardsCount === previousCount) stableRounds += 1;
     else stableRounds = 0;
 
-    if (stableRounds >= 5) break;
+    if (reachedListEnd || stableRounds >= 8) break;
 
     previousCount = cardsCount;
     await feed.hover();
@@ -150,7 +152,8 @@ async function collectCityShops(page, city, maxShops) {
   }
 
   const cards = page.locator('a.hfpxzc');
-  const total = Math.min(await cards.count(), maxShops);
+  const available = await cards.count();
+  const total = maxShops > 0 ? Math.min(available, maxShops) : available;
   const shops = [];
 
   for (let i = 0; i < total; i += 1) {

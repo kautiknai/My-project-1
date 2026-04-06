@@ -24,14 +24,14 @@ npm install
 npx playwright install chromium
 ```
 
-## Run
+## Run (all shops for all 4 cities)
 ```bash
-node scraper_google_maps.js --max-shops 50
+node scraper_google_maps.js
 ```
 
-Custom cities:
+Agar limit chahiye tab:
 ```bash
-node scraper_google_maps.js --cities Vadodara Ahmedabad Surat Rajkot --max-shops 40
+node scraper_google_maps.js --max-shops 40
 ```
 
 ## Google Sheets me data bhejna
@@ -42,8 +42,7 @@ node scraper_google_maps.js --cities Vadodara Ahmedabad Surat Rajkot --max-shops
 
 ```bash
 node scraper_google_maps.js \
-  --cities Vadodara Ahmedabad Surat Rajkot \
-  --max-shops 40 \
+  --max-shops 0 \
   --sheet-id YOUR_SPREADSHEET_ID \
   --service-account-json /path/to/service_account.json \
   --worksheet-name Hardware_Shops
@@ -65,11 +64,13 @@ Script nested array format me data store karta hai:
       }
     ]
   ],
-  ["Ahmedabad", [ ... ]]
+  ["Ahmedabad", [ ... ]],
+  ["Surat", [ ... ]],
+  ["Rajkot", [ ... ]]
 ]
 ```
 
 ## Notes
+- `--max-shops 0` ka matlab hai: available list me jitni shops load ho sake utni sab scrape karo.
 - Google Maps UI frequently badalti rehti hai, isliye selectors future me update karne pad sakte hain.
-- Bahut zyada aggressive scraping karne se request block ho sakti hai.
 - Data usage ke liye Google ke terms follow karein.
