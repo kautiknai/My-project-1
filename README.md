@@ -26,6 +26,7 @@ npx playwright install chromium
 
 ## Run (all shops for all 4 cities)
 > Note: `--sheet-id` aur `--service-account-json` required hai, tabhi run complete hoga.
+> Note: Agar aap custom `--cities` do, tab bhi script Rajkot ko automatically include karega.
 
 ```bash
 node scraper_google_maps.js \

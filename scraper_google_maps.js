@@ -58,7 +58,17 @@ function parseArgs(argv) {
     }
   }
 
+  args.cities = ensureRajkotIncluded(args.cities);
+
   return args;
+}
+
+function ensureRajkotIncluded(cities) {
+  const normalized = cities.map((city) => city.trim().toLowerCase());
+  if (!normalized.includes('rajkot')) {
+    return [...cities, 'Rajkot'];
+  }
+  return cities;
 }
 
 function printHelp() {
